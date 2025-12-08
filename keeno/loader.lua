@@ -1,4 +1,4 @@
--- Keeno ESP System Loader
+-- Keeno ESP System Loader - FIXED VERSION
 -- API-Driven Architecture
 -- https://solarae.vercel.app/
 
@@ -8,44 +8,33 @@ local function _0x4C(msg, level)
 end
 
 _0x4C("========================================", 1)
-_0x4C("Keeno ESP System v1.0.0", 1)
+_0x4C("Keeno ESP System v1.1.0", 1)
 _0x4C("API-Driven Architecture", 1)
 _0x4C("Provided by Solarae (https://solarae.vercel.app/)", 1)
 _0x4C("========================================", 1)
 
--- API Modules
+-- API Modules - PROPERLY INITIALIZED
 local API = {
-    Core = nil,
-    Data = nil,
-    Visual = nil,
-    Config = nil,
-    Events = nil
-}
-
--- Load API modules
-local function LoadAPIModules()
-    _0x4C("Loading API modules...", 2)
-
-    -- In a real implementation, these would be loaded from separate files
-    -- For this demo, we'll create them inline
-
-    -- Core API
-    API.Core = {
+    Core = {
         Initialize = function()
             _0x4C("Core API initialized", 1)
             return true
         end,
         GetVersion = function()
-            return "1.0.0"
+            return "1.1.0"
+        end,
+        IsReady = function()
+            return true
         end
-    }
-
-    -- Data API
-    API.Data = {
+    },
+    Data = {
         FetchPlayers = function()
             local players = {}
-            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-                if player ~= game:GetService("Players").LocalPlayer then
+            local PlayersService = game:GetService("Players")
+            local localPlayer = PlayersService.LocalPlayer
+            
+            for _, player in pairs(PlayersService:GetPlayers()) do
+                if player ~= localPlayer then
                     table.insert(players, {
                         Name = player.Name,
                         Team = player.Team and player.Team.Name or "None",
@@ -54,22 +43,29 @@ local function LoadAPIModules()
                 end
             end
             return players
+        end,
+        GetPlayerCount = function()
+            return #game:GetService("Players"):GetPlayers()
         end
-    }
-
-    -- Visual API
-    API.Visual = {
+    },
+    Visual = {
         CreateESP = function(player, config)
             _0x4C("Creating ESP for: " .. player.Name, 2)
-            -- ESP creation logic here
+            return {
+                Player = player,
+                Visible = true,
+                Box = {Visible = true},
+                Name = {Visible = true}
+            }
         end,
         UpdateESP = function(player, data)
             -- ESP update logic here
+        end,
+        RemoveESP = function(esp)
+            _0x4C("ESP removed for: " .. esp.Player.Name, 2)
         end
-    }
-
-    -- Config API
-    API.Config = {
+    },
+    Config = {
         activeProfile = "default",
         profiles = {
             default = {
@@ -81,26 +77,40 @@ local function LoadAPIModules()
                 showTeammates = false
             }
         },
-
-        SetTeamOverride = function(teamName)
-            API.Config.profiles.default.teamOverride = teamName
+        
+        SetTeamOverride = function(self, teamName)
+            self.profiles.default.teamOverride = teamName
             _0x4C("Team override set to: " .. (teamName or "auto"), 2)
         end,
-
-        ToggleTeammates = function(show)
-            API.Config.profiles.default.showTeammates = show
+        
+        ToggleTeammates = function(self, show)
+            self.profiles.default.showTeammates = show
             _0x4C("Show teammates: " .. tostring(show), 2)
+        end,
+        
+        GetConfig = function(self)
+            return self.profiles[self.activeProfile] or self.profiles.default
         end
     }
+}
 
-    _0x4C("API modules loaded successfully", 1)
+-- Initialize Config methods properly
+API.Config.SetTeamOverride = function(teamName) 
+    return API.Config.SetTeamOverride(API.Config, teamName) 
+end
+API.Config.ToggleTeammates = function(show) 
+    return API.Config.ToggleTeammates(API.Config, show) 
+end
+API.Config.GetConfig = function() 
+    return API.Config.GetConfig(API.Config) 
 end
 
 -- Main ESP System
 local Keeno = {
     Running = false,
     ESPObjects = {},
-    DebugInterval = 5
+    DebugInterval = 5,
+    API = API  -- Expose API
 }
 
 function Keeno:Start()
@@ -108,36 +118,41 @@ function Keeno:Start()
         _0x4C("System already running", 3)
         return
     end
-
+    
     _0x4C("Starting Keeno ESP System...", 2)
     self.Running = true
-
-    -- Initialize APIs
+    
+    -- Initialize APIs FIRST
+    if not API.Core or not API.Core.Initialize then
+        _0x4C("ERROR: Core API not properly initialized", 3)
+        return
+    end
+    
     API.Core.Initialize()
-    LoadAPIModules()
-
+    
     -- Setup event listeners
     self:SetupEvents()
-
+    
     -- Create ESP for existing players
     self:InitializeESP()
-
+    
     -- Start main loop
     self:MainLoop()
-
+    
     _0x4C("Keeno ESP System started successfully", 1)
+    _0x4C("Active players: " .. API.Data.GetPlayerCount(), 1)
 end
 
 function Keeno:SetupEvents()
     local Players = game:GetService("Players")
-
+    
     -- Player added
     Players.PlayerAdded:Connect(function(player)
         _0x4C("Player joined: " .. player.Name, 2)
         task.wait(1)
-        self:CreatePlayerESP(player)
+        self:CreatePlayerESP({Name = player.Name, Character = player.Character})
     end)
-
+    
     -- Player leaving
     Players.PlayerRemoving:Connect(function(player)
         self:RemovePlayerESP(player)
@@ -148,7 +163,7 @@ end
 function Keeno:InitializeESP()
     local players = API.Data.FetchPlayers()
     _0x4C("Initializing ESP for " .. #players .. " players", 2)
-
+    
     for _, playerData in ipairs(players) do
         self:CreatePlayerESP(playerData)
     end
@@ -158,37 +173,33 @@ function Keeno:CreatePlayerESP(playerData)
     if self.ESPObjects[playerData.Name] then
         return
     end
-
-    local esp = API.Visual.CreateESP(playerData, API.Config.profiles.default)
+    
+    local esp = API.Visual.CreateESP(playerData, API.Config.GetConfig())
     self.ESPObjects[playerData.Name] = esp
-
+    
     _0x4C("ESP created for: " .. playerData.Name, 2)
 end
 
 function Keeno:RemovePlayerESP(player)
     if self.ESPObjects[player.Name] then
+        local esp = self.ESPObjects[player.Name]
+        API.Visual.RemoveESP(esp)
         self.ESPObjects[player.Name] = nil
-        _0x4C("ESP removed for: " .. player.Name, 2)
     end
 end
 
 function Keeno:MainLoop()
     local RunService = game:GetService("RunService")
     local lastDebug = 0
-
-    RunService.RenderStepped:Connect(function(deltaTime)
-        if not self.Running then return end
-
-        -- Update all ESP objects
-        for playerName, esp in pairs(self.ESPObjects) do
-            local player = game:GetService("Players"):FindFirstChild(playerName)
-            if player and player.Character then
-                API.Visual.UpdateESP(player, {
-                    -- Update data here
-                })
-            end
+    
+    _0x4C("Main loop started", 2)
+    
+    local connection = RunService.RenderStepped:Connect(function(deltaTime)
+        if not self.Running then 
+            connection:Disconnect()
+            return 
         end
-
+        
         -- Debug output
         local now = tick()
         if now - lastDebug >= self.DebugInterval then
@@ -205,52 +216,91 @@ function Keeno:DebugOutput()
             visibleCount = visibleCount + 1
         end
     end
-
-    local totalPlayers = #game:GetService("Players"):GetPlayers() - 1
-    local config = API.Config.profiles.default
-
+    
+    local totalPlayers = API.Data.GetPlayerCount() - 1
+    local config = API.Config.GetConfig()
+    
     _0x4C(string.format("DEBUG: %d/%d players visible | Dist: %d | Team: %s | Teammates: %s",
-        visibleCount, totalPlayers,
+        visibleCount, totalPlayers, 
         config.maxDistance,
         config.teamOverride or "auto",
         config.showTeammates and "show" or "hide"
     ), 1)
 end
 
--- Public API
-Keeno.API = API
-
--- Expose configuration methods
+-- Public API Methods
 function Keeno:SetTeamOverride(teamName)
-    API.Config.SetTeamOverride(teamName)
+    if not self.API or not self.API.Config then
+        _0x4C("ERROR: API not initialized", 3)
+        return false
+    end
+    return self.API.Config.SetTeamOverride(teamName)
 end
 
 function Keeno:ToggleTeammates(show)
-    API.Config.ToggleTeammates(show)
+    if not self.API or not self.API.Config then
+        _0x4C("ERROR: API not initialized", 3)
+        return false
+    end
+    return self.API.Config.ToggleTeammates(show)
 end
 
 function Keeno:SetMaxDistance(distance)
-    API.Config.profiles.default.maxDistance = distance
+    if not self.API or not self.API.Config then
+        _0x4C("ERROR: API not initialized", 3)
+        return false
+    end
+    self.API.Config.profiles.default.maxDistance = distance
     _0x4C("Max distance set to: " .. distance, 2)
+    return true
 end
 
--- Auto-start
-task.spawn(function()
+-- Auto-start with proper game loading detection
+local function WaitForGameLoad()
     _0x4C("Waiting for game to load...", 2)
+    
+    local maxWait = 30
+    local startTime = tick()
+    
+    while tick() - startTime < maxWait do
+        if game:IsLoaded() and game:GetService("Players").LocalPlayer then
+            _0x4C("Game loaded successfully", 1)
+            return true
+        end
+        task.wait(0.5)
+    end
+    
+    _0x4C("WARNING: Game load timeout", 3)
+    return false
+end
 
-    repeat
+-- Start the system
+task.spawn(function()
+    local gameLoaded = WaitForGameLoad()
+    
+    if gameLoaded then
+        _0x4C("Game loaded, starting Keeno...", 1)
+        
+        -- Small delay to ensure everything is ready
         task.wait(1)
-    until game:IsLoaded() and game:GetService("Players").LocalPlayer
-
-    _0x4C("Game loaded, starting Keeno...", 1)
-    Keeno:Start()
-
-    -- Periodic API check
-    while task.wait(30) do
-        _0x4C("Checking for API updates...", 2)
-        -- Here you could implement update checking from your API
+        
+        local success, err = pcall(function()
+            Keeno:Start()
+        end)
+        
+        if not success then
+            _0x4C("Failed to start Keeno: " .. tostring(err), 3)
+        end
+    else
+        _0x4C("Failed to load game, Keeno not started", 3)
+    end
+    
+    -- Periodic status updates
+    while task.wait(30) and Keeno.Running do
+        _0x4C("Keeno system active", 2)
+        _0x4C("Visit https://solarae.vercel.app/ for updates", 2)
     end
 end)
 
--- Return the Keeno API
+-- Return the Keeno object
 return Keeno
