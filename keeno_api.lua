@@ -1,3 +1,6 @@
+-- keeno_api.lua - Core ESP System
+-- [+] Provided to you by Solarae (https://solarae.vercel.app/)
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -8,7 +11,6 @@ local _0x6b24 = {}
 local _0x4c7d = {}
 local _0x3e7a = {}
 
--- Settings
 local _0x4b2e = {
     _0x4e6a = true,
     _0x5e19 = false,
@@ -62,14 +64,13 @@ end
 local _0x4d7a = function(player)
     local playerName = player.Name
     _0x29c3[playerName] = player
-
-    -- Create box
+    
     local box = Drawing.new("Square")
     box.Visible = false
     box.Thickness = _0x4b2e._0x5d41
     box.Filled = false
     _0x1d9f[playerName] = box
-
+    
     local nameText = Drawing.new("Text")
     nameText.Visible = false
     nameText.Size = _0x4b2e._0x3b7d
@@ -77,7 +78,7 @@ local _0x4d7a = function(player)
     nameText.Outline = true
     nameText.Font = 2
     _0x6b24[playerName] = nameText
-
+    
     local distText = Drawing.new("Text")
     distText.Visible = false
     distText.Size = _0x4b2e._0x3b7d - 2
@@ -85,7 +86,7 @@ local _0x4d7a = function(player)
     distText.Outline = true
     distText.Font = 2
     _0x4c7d[playerName] = distText
-
+    
     local tracer = Drawing.new("Line")
     tracer.Visible = false
     tracer.Thickness = _0x4b2e._0x1a9d
@@ -107,45 +108,42 @@ end
 
 local _0x1c9b = function()
     if not _0x4b2e._0x4e6a then return end
-
+    
     for playerName, player in pairs(_0x29c3) do
         local box = _0x1d9f[playerName]
         local nameText = _0x6b24[playerName]
         local distText = _0x4c7d[playerName]
         local tracer = _0x3e7a[playerName]
-
+        
         if box and nameText and distText and tracer then
             local char = player.Character
-
+            
             if char then
                 local charPos = _0x4a29(char)
                 local distance = _0x5b0c(char)
-
+                
                 if distance <= _0x4b2e._0x3f8d then
                     local onScreen, screenPos = _0x2a9f(charPos)
-
+                    
                     if onScreen then
                         local boxSize = _0x293b(distance)
                         local boxPos = Vector2.new(
                             screenPos.X - boxSize.X / 2,
                             screenPos.Y - boxSize.Y / 2
                         )
-
+                        
                         local color = _0x3e1d(player) and _0x4b2e._0x2f6b or _0x4b2e._0x3a92
-
-                        -- Update box
+                        
                         box.Size = boxSize
                         box.Position = boxPos
                         box.Color = color
                         box.Visible = true
-
-                        -- Update name
+                        
                         nameText.Text = playerName
                         nameText.Position = Vector2.new(screenPos.X, boxPos.Y - 15)
                         nameText.Color = color
                         nameText.Visible = true
-
-                        -- Update distance
+                        
                         if _0x4b2e._0x5e19 then
                             distText.Text = tostring(distance) .. " studs"
                             distText.Position = Vector2.new(screenPos.X, boxPos.Y + boxSize.Y + 5)
@@ -154,8 +152,7 @@ local _0x1c9b = function()
                         else
                             distText.Visible = false
                         end
-
-                        -- Update tracer
+                        
                         if _0x4b2e._0x6c3e then
                             local screenSize = workspace.CurrentCamera.ViewportSize
                             tracer.From = Vector2.new(screenSize.X / 2, screenSize.Y)
@@ -207,15 +204,6 @@ local _0x5f9d = RunService.RenderStepped:Connect(function()
     _0x1c9b()
 end)
 
-spawn(function()
-    local lastState = false
-    while task.wait(1) do
-        if _0x4b2e._0x4e6a ~= lastState then
-            lastState = _0x4b2e._0x4e6a
-        end
-    end
-end)
-
 return {
     espEnabled = function(value)
         if value ~= nil then
@@ -223,49 +211,49 @@ return {
         end
         return _0x4b2e._0x4e6a
     end,
-
+    
     distanceEnabled = function(value)
         if value ~= nil then
             _0x4b2e._0x5e19 = value
         end
         return _0x4b2e._0x5e19
     end,
-
+    
     teamCheck = function(value)
         if value ~= nil then
             _0x4b2e._0x437a = value
         end
         return _0x4b2e._0x437a
     end,
-
+    
     tracersEnabled = function(value)
         if value ~= nil then
             _0x4b2e._0x6c3e = value
         end
         return _0x4b2e._0x6c3e
     end,
-
+    
     maxDistance = function(value)
         if type(value) == "number" and value > 0 then
             _0x4b2e._0x3f8d = value
         end
         return _0x4b2e._0x3f8d
     end,
-
+    
     friendColor = function(color)
         if typeof(color) == "Color3" then
             _0x4b2e._0x2f6b = color
         end
         return _0x4b2e._0x2f6b
     end,
-
+    
     enemyColor = function(color)
         if typeof(color) == "Color3" then
             _0x4b2e._0x3a92 = color
         end
         return _0x4b2e._0x3a92
     end,
-
+    
     lineThickness = function(thickness)
         if type(thickness) == "number" and thickness > 0 then
             _0x4b2e._0x5d41 = thickness
@@ -275,7 +263,7 @@ return {
         end
         return _0x4b2e._0x5d41
     end,
-
+    
     tracerThickness = function(thickness)
         if type(thickness) == "number" and thickness > 0 then
             _0x4b2e._0x1a9d = thickness
@@ -285,7 +273,7 @@ return {
         end
         return _0x4b2e._0x1a9d
     end,
-
+    
     fontSize = function(size)
         if type(size) == "number" and size > 0 then
             _0x4b2e._0x3b7d = size
@@ -298,7 +286,7 @@ return {
         end
         return _0x4b2e._0x3b7d
     end,
-
+    
     refresh = function()
         for playerName, _ in pairs(_0x29c3) do
             local player = game.Players:FindFirstChild(playerName)
@@ -306,16 +294,16 @@ return {
                 _0x1862(player)
             end
         end
-
+        
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer then
                 _0x4d7a(player)
             end
         end
-
+        
         return true
     end,
-
+    
     clear = function()
         for playerName, box in pairs(_0x1d9f) do
             box:Remove()
@@ -329,20 +317,20 @@ return {
         for playerName, tracer in pairs(_0x3e7a) do
             tracer:Remove()
         end
-
+        
         _0x29c3 = {}
         _0x1d9f = {}
         _0x6b24 = {}
         _0x4c7d = {}
         _0x3e7a = {}
-
+        
         return true
     end,
-
+    
     destroy = function()
         _0x5f9d:Disconnect()
         _0x4b2e._0x4e6a = false
-
+        
         for playerName, box in pairs(_0x1d9f) do
             pcall(function() box:Remove() end)
         end
@@ -355,11 +343,10 @@ return {
         for playerName, tracer in pairs(_0x3e7a) do
             pcall(function() tracer:Remove() end)
         end
-
-        print(' [!] ESP Destroyed')
+        
         return true
     end,
-
+    
     getActivePlayers = function()
         local active = {}
         for playerName, box in pairs(_0x1d9f) do
@@ -369,7 +356,7 @@ return {
         end
         return active
     end,
-
+    
     getSettings = function()
         return {
             espEnabled = _0x4b2e._0x4e6a,
