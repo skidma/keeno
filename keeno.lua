@@ -1,12 +1,13 @@
 local success, core = pcall(function()
     return loadstring(game:HttpGet("https://raw.githubusercontent.com/skidma/keeno/refs/heads/main/keeno_api.lua"))()
 end)
+
 if not success then
-    warn(" [!] Failed to initialize Keeno")
     return nil
 end
 
 local keeno = {}
+
 keeno.espEnabled = true
 keeno.distanceEnabled = false
 keeno.teamCheck = false
@@ -17,6 +18,7 @@ keeno.enemyColor = Color3.fromRGB(255, 0, 0)
 keeno.lineThickness = 2
 keeno.tracerThickness = 1
 keeno.fontSize = 13
+
 setmetatable(keeno, {
     __newindex = function(self, key, value)
         rawset(self, key, value)
@@ -44,6 +46,7 @@ setmetatable(keeno, {
         end
     end
 })
+
 function keeno:refresh()
     return core.refresh()
 end
@@ -83,4 +86,7 @@ keeno.espEnabled = keeno.espEnabled
 keeno.distanceEnabled = keeno.distanceEnabled
 keeno.teamCheck = keeno.teamCheck
 keeno.tracersEnabled = keeno.tracersEnabled
+
+print(" [!] Keeno Initialized")
+
 return keeno
