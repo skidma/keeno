@@ -51,6 +51,26 @@ local _0x2a9f = function(position)
     return onScreen, Vector2.new(screenPos.X, screenPos.Y)
 end
 
+-- Get character bounding box
+local _0x4a29 = function(character)
+    if not character then return {Position = Vector3.new(0,0,0), Size = Vector3.new(5,6,0)} end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return {Position = Vector3.new(0,0,0), Size = Vector3.new(5,6,0)} end
+    
+    -- Estimate character size (adjustable based on distance)
+    local size = Vector3.new(2, 4, 0) -- Base size
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        size = Vector3.new(3, humanoid.HipHeight * 2, 0)
+    end
+    
+    return {
+        Position = root.Position,
+        Size = size
+    }
+end
+
 -- Create ESP for player
 local _0x4d7a = function(player)
     local playerName = player.Name
@@ -101,6 +121,23 @@ local _0x1862 = function(player)
     print('[-] Removed ESP for: ' .. playerName)
 end
 
+-- Calculate box size based on distance
+local _0x293b = function(distance)
+    -- Base size at 50 studs
+    local baseSize = 50
+    
+    -- Clamp distance to prevent division by zero
+    distance = math.max(distance, 1)
+    
+    -- Size decreases as distance increases
+    local size = baseSize / (distance / 50)
+    
+    -- Clamp size between reasonable values
+    size = math.clamp(size, 20, 150)
+    
+    return Vector2.new(size * 0.6, size) -- Width is 60% of height
+end
+
 -- Update ESP
 local _0x1c9b = function()
     if not _0x4b2e._0x4e6a then return end
@@ -112,16 +149,19 @@ local _0x1c9b = function()
         
         if box and nameText and distText then
             local char = player.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
             
-            if char and root then
+            if char then
+                local charInfo = _0x4a29(char)
                 local distance = _0x5b0c(char)
                 
                 if distance <= _0x4b2e._0x3f8d then
-                    local onScreen, screenPos = _0x2a9f(root.Position)
+                    local onScreen, screenPos = _0x2a9f(charInfo.Position)
                     
                     if onScreen then
-                        local boxSize = Vector2.new(50, 80)
+                        -- Calculate dynamic box size based on distance
+                        local boxSize = _0x293b(distance)
+                        
+                        -- Position box centered on character
                         local boxPos = Vector2.new(
                             screenPos.X - boxSize.X / 2,
                             screenPos.Y - boxSize.Y / 2
@@ -201,7 +241,7 @@ spawn(function()
                     active = active + 1
                 end
             end
-            print('[~] ESP Active: ' .. active .. ' | Distance: ' .. _0x4b2e._0x3f8d .. ' | Team: ' .. tostring(_0x4b2e._0x437a))
+            print('[~] ESP Active: ' .. active .. ' | Max Distance: ' .. _0x4b2e._0x3f8d .. ' | Team Check: ' .. tostring(_0x4b2e._0x437a))
         end
     end
 end)
