@@ -1,5 +1,3 @@
-# Keeno
-
 ## Information
 Keeno is a powerful library designed for Roblox cheat developers to make developing cheats faster and easier.
 
