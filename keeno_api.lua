@@ -206,11 +206,27 @@ end)
 
 return {
     espEnabled = function(value)
-        if value ~= nil then
-            _0x4b2e._0x4e6a = value
+    if value ~= nil then
+        _0x4b2e._0x4e6a = value
+        
+        -- Hide all ESP elements when disabled
+        if not value then
+            for playerName, box in pairs(_0x1d9f) do
+                box.Visible = false
+            end
+            for playerName, nameText in pairs(_0x6b24) do
+                nameText.Visible = false
+            end
+            for playerName, distText in pairs(_0x4c7d) do
+                distText.Visible = false
+            end
+            for playerName, tracer in pairs(_0x3e7a) do
+                tracer.Visible = false
+            end
         end
-        return _0x4b2e._0x4e6a
-    end,
+    end
+    return _0x4b2e._0x4e6a
+end,
     
     distanceEnabled = function(value)
         if value ~= nil then
