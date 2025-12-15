@@ -107,9 +107,7 @@ local _0x1862 = function(player)
 end
 
 local _0x1c9b = function()
-    local isESPEnabled = _0x4b2e._0x4e6a
-    
-    if not isESPEnabled then
+    if not _0x4b2e._0x4e6a then
         for playerName, box in pairs(_0x1d9f) do
             box.Visible = false
         end
